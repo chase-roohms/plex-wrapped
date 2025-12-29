@@ -97,6 +97,11 @@ class TautulliClient:
         """Get all users"""
         return self._make_request('get_users')
     
+    def get_user(self, user_id: int) -> Dict[str, Any]:
+        """Get a specific user's details including profile picture"""
+        params = {'user_id': user_id}
+        return self._make_request('get_user', params)
+    
     def plex_thumbnail_url(self, rating_key: int, image_name: str) -> str:
         """Generate Plex thumbnail URL"""
         return f'{self.plex_base_url}/library/metadata/{rating_key}/thumb/{image_name}?X-Plex-Token={self.plex_token}'

@@ -13,8 +13,13 @@ class WrappedHTMLGenerator:
         os.makedirs(output_dir, exist_ok=True)
     
     def generate_user_report(self, user: str, stats: Dict[str, Any], 
-                            period_label: str) -> str:
+                            period_label: str, user_thumb: str = None) -> str:
         """Generate a complete wrapped report for a user"""
+        
+        # Add favicon link if user_thumb is provided
+        favicon_html = ""
+        if user_thumb:
+            favicon_html = f'\n    <link rel="icon" type="image/png" href="{user_thumb}">'
         
         html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -22,7 +27,7 @@ class WrappedHTMLGenerator:
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
-    <title>{user}'s Plex Wrapped {period_label}</title>
+    <title>{user}'s Plex Wrapped {period_label}</title>{favicon_html}
     
     <!-- Open Graph / Social Media Meta Tags -->
     <meta property="og:title" content="{user}'s Plex Wrapped {period_label}">

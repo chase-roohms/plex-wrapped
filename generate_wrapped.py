@@ -59,13 +59,19 @@ def generate_wrapped_reports(period: Literal['monthly', 'yearly'] = 'yearly'):
     # Organize history by user
     user_history = defaultdict(list)
     user_stats = {}
+    user_ids = {}  # Track user_id for each user
     
     for entry in all_history:
         user = entry.get('friendly_name')
         media_type = entry.get('media_type')
+        user_id = entry.get('user_id')
         
         if media_type in tracked_media and user:
             user_history[user].append(entry)
+            
+            # Store the user_id for this user
+            if user not in user_ids and user_id:
+                user_ids[user] = user_id
             
             if user not in user_stats:
                 user_stats[user] = {'movie': 0, 'episode': 0, 'total': 0}
@@ -199,7 +205,17 @@ def generate_wrapped_reports(period: Literal['monthly', 'yearly'] = 'yearly'):
         # Generate HTML report
         try:
             print("    - Generating HTML report...")
-            filename = html_generator.generate_user_report(user, wrapped_stats, period_label)
+            # Get user profile picture
+            user_thumb = None
+            if user in user_ids:
+                try:
+                    user_data = client.get_user(user_ids[user])
+                    user_info = user_data.get('data', {})
+                    user_thumb = user_info.get('user_thumb')
+                except Exception as e:
+                    print(f"    ⚠️  Could not fetch user profile picture: {e}")
+            
+            filename = html_generator.generate_user_report(user, wrapped_stats, period_label, user_thumb)
             generated_files.append(filename)
             print(f"    ✅ Report saved: {filename}")
         except Exception as e:
