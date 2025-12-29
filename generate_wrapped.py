@@ -178,7 +178,7 @@ def generate_wrapped_reports(period: Literal['monthly', 'yearly'] = 'yearly'):
         # Genre diversity (may be slow due to API calls)
         try:
             print("    - Analyzing genre diversity (this may take a moment)...")
-            genres = analytics.analyze_genre_diversity(history[:100])  # Limit to first 100 for performance
+            genres = analytics.analyze_genre_diversity(history)  # Analyze all entries for accurate data
             wrapped_stats['genres'] = genres
         except Exception as e:
             print(f"    ⚠️  Error analyzing genres: {e}")
