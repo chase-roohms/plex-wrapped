@@ -322,6 +322,7 @@ class WrappedHTMLGenerator:
             transform: translateX(-50%);
             animation: bounce 2s infinite;
             opacity: 0.7;
+            z-index: 1000;
         }}
         
         @keyframes bounce {{
