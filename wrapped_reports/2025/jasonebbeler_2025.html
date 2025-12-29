@@ -375,9 +375,9 @@
         <div class="section">
             <div class="stat-card">
                 <h3>When You Watch</h3>
-                <div class="subtitle">Your peak watching hour: 21:00</div>
-                <div class="heatmap">
-                    <div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.7498855559571136);" title="0:00 - 1h">00:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.3);" title="1:00 - 0h">01:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.3);" title="2:00 - 0h">02:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.3);" title="3:00 - 0h">03:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.3);" title="4:00 - 0h">04:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.3);" title="5:00 - 0h">05:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.3);" title="6:00 - 0h">06:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.3);" title="7:00 - 0h">07:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.3);" title="8:00 - 0h">08:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.3);" title="9:00 - 0h">09:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.3);" title="10:00 - 0h">10:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.3);" title="11:00 - 0h">11:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.3);" title="12:00 - 0h">12:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.3);" title="13:00 - 0h">13:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.3);" title="14:00 - 0h">14:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.6919527767738827);" title="15:00 - 1h">15:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.3);" title="16:00 - 0h">16:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.3);" title="17:00 - 0h">17:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.3);" title="18:00 - 0h">18:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.33946512468377305);" title="19:00 - 0h">19:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.703589928924226);" title="20:00 - 1h">20:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 1.0);" title="21:00 - 2h">21:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.3922539453077942);" title="22:00 - 0h">22:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.3);" title="23:00 - 0h">23:00</div>
+                <div class="subtitle" id="peak-time-display" data-server-hour="21" data-server-tz="America/Chicago">Your peak watching hour: <span id="peak-hour-time">21:00</span> <span id="peak-hour-tz"></span></div>
+                <div class="heatmap" id="hours-heatmap">
+                    <div class="heatmap-cell" data-hour="0" style="background: rgba(167, 139, 250, 0.7498855559571136);" title="0:00 - 1h">00:00</div><div class="heatmap-cell" data-hour="1" style="background: rgba(167, 139, 250, 0.3);" title="1:00 - 0h">01:00</div><div class="heatmap-cell" data-hour="2" style="background: rgba(167, 139, 250, 0.3);" title="2:00 - 0h">02:00</div><div class="heatmap-cell" data-hour="3" style="background: rgba(167, 139, 250, 0.3);" title="3:00 - 0h">03:00</div><div class="heatmap-cell" data-hour="4" style="background: rgba(167, 139, 250, 0.3);" title="4:00 - 0h">04:00</div><div class="heatmap-cell" data-hour="5" style="background: rgba(167, 139, 250, 0.3);" title="5:00 - 0h">05:00</div><div class="heatmap-cell" data-hour="6" style="background: rgba(167, 139, 250, 0.3);" title="6:00 - 0h">06:00</div><div class="heatmap-cell" data-hour="7" style="background: rgba(167, 139, 250, 0.3);" title="7:00 - 0h">07:00</div><div class="heatmap-cell" data-hour="8" style="background: rgba(167, 139, 250, 0.3);" title="8:00 - 0h">08:00</div><div class="heatmap-cell" data-hour="9" style="background: rgba(167, 139, 250, 0.3);" title="9:00 - 0h">09:00</div><div class="heatmap-cell" data-hour="10" style="background: rgba(167, 139, 250, 0.3);" title="10:00 - 0h">10:00</div><div class="heatmap-cell" data-hour="11" style="background: rgba(167, 139, 250, 0.3);" title="11:00 - 0h">11:00</div><div class="heatmap-cell" data-hour="12" style="background: rgba(167, 139, 250, 0.3);" title="12:00 - 0h">12:00</div><div class="heatmap-cell" data-hour="13" style="background: rgba(167, 139, 250, 0.3);" title="13:00 - 0h">13:00</div><div class="heatmap-cell" data-hour="14" style="background: rgba(167, 139, 250, 0.3);" title="14:00 - 0h">14:00</div><div class="heatmap-cell" data-hour="15" style="background: rgba(167, 139, 250, 0.6919527767738827);" title="15:00 - 1h">15:00</div><div class="heatmap-cell" data-hour="16" style="background: rgba(167, 139, 250, 0.3);" title="16:00 - 0h">16:00</div><div class="heatmap-cell" data-hour="17" style="background: rgba(167, 139, 250, 0.3);" title="17:00 - 0h">17:00</div><div class="heatmap-cell" data-hour="18" style="background: rgba(167, 139, 250, 0.3);" title="18:00 - 0h">18:00</div><div class="heatmap-cell" data-hour="19" style="background: rgba(167, 139, 250, 0.33946512468377305);" title="19:00 - 0h">19:00</div><div class="heatmap-cell" data-hour="20" style="background: rgba(167, 139, 250, 0.703589928924226);" title="20:00 - 1h">20:00</div><div class="heatmap-cell" data-hour="21" style="background: rgba(167, 139, 250, 1.0);" title="21:00 - 2h">21:00</div><div class="heatmap-cell" data-hour="22" style="background: rgba(167, 139, 250, 0.3922539453077942);" title="22:00 - 0h">22:00</div><div class="heatmap-cell" data-hour="23" style="background: rgba(167, 139, 250, 0.3);" title="23:00 - 0h">23:00</div>
                 </div>
                 <div style="margin-top: 30px;">
                     <div class="list-item">
@@ -546,5 +546,67 @@
         </div>
         
     </div>
+    
+    <script>
+        // Convert times from server timezone (America/Chicago) to user's local timezone
+        (function() {
+            const serverTz = 'America/Chicago';
+            
+            // Convert peak hour display
+            const peakDisplay = document.getElementById('peak-time-display');
+            if (peakDisplay) {
+                const serverHour = parseInt(peakDisplay.dataset.serverHour);
+                
+                // Create date in server timezone
+                const now = new Date();
+                const serverDate = new Date(now.toLocaleString('en-US', { timeZone: serverTz }));
+                serverDate.setHours(serverHour, 0, 0, 0);
+                
+                // Get UTC offset difference
+                const serverTime = new Date(serverDate.toLocaleString('en-US', { timeZone: serverTz }));
+                const localTime = new Date(serverDate.toLocaleString('en-US', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }));
+                const offsetHours = Math.round((localTime - serverTime) / (1000 * 60 * 60));
+                
+                // Calculate local hour
+                let localHour = (serverHour + offsetHours + 24) % 24;
+                
+                // Format time
+                const timeStr = localHour.toString().padStart(2, '0') + ':00';
+                const tzAbbr = new Date().toLocaleTimeString('en-US', { 
+                    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                    timeZoneName: 'short' 
+                }).split(' ')[2] || '';
+                
+                document.getElementById('peak-hour-time').textContent = timeStr;
+                document.getElementById('peak-hour-tz').textContent = tzAbbr;
+            }
+            
+            // Convert heatmap cell labels
+            const heatmap = document.getElementById('hours-heatmap');
+            if (heatmap) {
+                const cells = heatmap.querySelectorAll('.heatmap-cell');
+                
+                // Calculate timezone offset
+                const now = new Date();
+                const serverDate = new Date(now.toLocaleString('en-US', { timeZone: serverTz }));
+                const localDate = new Date(now.toLocaleString('en-US', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }));
+                const offsetHours = Math.round((localDate - serverDate) / (1000 * 60 * 60));
+                
+                cells.forEach(cell => {
+                    const serverHour = parseInt(cell.dataset.hour);
+                    const localHour = (serverHour + offsetHours + 24) % 24;
+                    const timeStr = localHour.toString().padStart(2, '0') + ':00';
+                    cell.textContent = timeStr;
+                    
+                    // Update tooltip
+                    const title = cell.getAttribute('title');
+                    if (title) {
+                        const newTitle = title.replace(/\d+:00/, timeStr);
+                        cell.setAttribute('title', newTitle);
+                    }
+                });
+            }
+        })();
+    </script>
 </body>
 </html>

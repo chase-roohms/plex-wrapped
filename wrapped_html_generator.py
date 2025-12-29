@@ -398,6 +398,68 @@ class WrappedHTMLGenerator:
         </div>
         
     </div>
+    
+    <script>
+        // Convert times from server timezone (America/Chicago) to user's local timezone
+        (function() {{
+            const serverTz = 'America/Chicago';
+            
+            // Convert peak hour display
+            const peakDisplay = document.getElementById('peak-time-display');
+            if (peakDisplay) {{
+                const serverHour = parseInt(peakDisplay.dataset.serverHour);
+                
+                // Create date in server timezone
+                const now = new Date();
+                const serverDate = new Date(now.toLocaleString('en-US', {{ timeZone: serverTz }}));
+                serverDate.setHours(serverHour, 0, 0, 0);
+                
+                // Get UTC offset difference
+                const serverTime = new Date(serverDate.toLocaleString('en-US', {{ timeZone: serverTz }}));
+                const localTime = new Date(serverDate.toLocaleString('en-US', {{ timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }}));
+                const offsetHours = Math.round((localTime - serverTime) / (1000 * 60 * 60));
+                
+                // Calculate local hour
+                let localHour = (serverHour + offsetHours + 24) % 24;
+                
+                // Format time
+                const timeStr = localHour.toString().padStart(2, '0') + ':00';
+                const tzAbbr = new Date().toLocaleTimeString('en-US', {{ 
+                    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                    timeZoneName: 'short' 
+                }}).split(' ')[2] || '';
+                
+                document.getElementById('peak-hour-time').textContent = timeStr;
+                document.getElementById('peak-hour-tz').textContent = tzAbbr;
+            }}
+            
+            // Convert heatmap cell labels
+            const heatmap = document.getElementById('hours-heatmap');
+            if (heatmap) {{
+                const cells = heatmap.querySelectorAll('.heatmap-cell');
+                
+                // Calculate timezone offset
+                const now = new Date();
+                const serverDate = new Date(now.toLocaleString('en-US', {{ timeZone: serverTz }}));
+                const localDate = new Date(now.toLocaleString('en-US', {{ timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }}));
+                const offsetHours = Math.round((localDate - serverDate) / (1000 * 60 * 60));
+                
+                cells.forEach(cell => {{
+                    const serverHour = parseInt(cell.dataset.hour);
+                    const localHour = (serverHour + offsetHours + 24) % 24;
+                    const timeStr = localHour.toString().padStart(2, '0') + ':00';
+                    cell.textContent = timeStr;
+                    
+                    // Update tooltip
+                    const title = cell.getAttribute('title');
+                    if (title) {{
+                        const newTitle = title.replace(/\\d+:00/, timeStr);
+                        cell.setAttribute('title', newTitle);
+                    }}
+                }});
+            }}
+        }})();
+    </script>
 </body>
 </html>"""
         
@@ -486,13 +548,14 @@ class WrappedHTMLGenerator:
         
         hourly_data = peak_hours.get('hourly_data', [0]*24)
         max_val = max(hourly_data) if hourly_data else 1
+        peak_hour = peak_hours.get('peak_hour', 0)
         
-        # Create heatmap cells
+        # Create heatmap cells with server timezone data
         cells = ""
         for hour, value in enumerate(hourly_data):
             intensity = (value / max_val) if max_val > 0 else 0
             opacity = 0.3 + (intensity * 0.7)
-            cells += f'<div class="heatmap-cell" style="background: rgba(167, 139, 250, {opacity});" title="{hour}:00 - {value//3600}h">{hour:02d}:00</div>'
+            cells += f'<div class="heatmap-cell" data-hour="{hour}" style="background: rgba(167, 139, 250, {opacity});" title="{hour}:00 - {value//3600}h">{hour:02d}:00</div>'
         
         distribution = peak_hours.get('distribution', {})
         
@@ -500,8 +563,8 @@ class WrappedHTMLGenerator:
         <div class="section">
             <div class="stat-card">
                 <h3>When You Watch</h3>
-                <div class="subtitle">Your peak watching hour: {peak_hours.get('peak_hour_formatted', 'Unknown')}</div>
-                <div class="heatmap">
+                <div class="subtitle" id="peak-time-display" data-server-hour="{peak_hour}" data-server-tz="America/Chicago">Your peak watching hour: <span id="peak-hour-time">{peak_hours.get('peak_hour_formatted', 'Unknown')}</span> <span id="peak-hour-tz"></span></div>
+                <div class="heatmap" id="hours-heatmap">
                     {cells}
                 </div>
                 <div style="margin-top: 30px;">
