@@ -500,6 +500,10 @@ class WrappedAnalytics:
                                 return thumbnail_path
                         except:
                             pass
+                    else:
+                        raise Exception(f"Invalid thumbnail image for {title}")    
+                else:
+                    raise Exception(f"Invalid thumbnail image for {title}")
             except Exception as e:
                 print(f"    ⚠️  Could not download thumbnail for {title}: {e}")
             
