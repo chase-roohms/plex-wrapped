@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Server Summary's Plex Wrapped 2025</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e22ce 100%);
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .section {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+            animation: fadeIn 1s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .hero {
+            text-align: center;
+        }
+        
+        .hero h1 {
+            font-size: 5rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, #fff, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { text-shadow: 0 0 20px rgba(167, 139, 250, 0.5); }
+            to { text-shadow: 0 0 40px rgba(167, 139, 250, 0.8); }
+        }
+        
+        .hero h2 {
+            font-size: 2rem;
+            margin: 20px 0;
+            opacity: 0.9;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            margin: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            width: 100%;
+            max-width: 800px;
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-card h3 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #a78bfa;
+        }
+        
+        .big-number {
+            font-size: 4rem;
+            font-weight: 900;
+            color: #fbbf24;
+            margin: 20px 0;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            margin: 10px 0;
+        }
+        
+        .list-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px 20px;
+            margin: 10px 0;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid #a78bfa;
+        }
+        
+        .list-item .name {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .list-item .value {
+            font-size: 1.1rem;
+            color: #fbbf24;
+            font-weight: 700;
+        }
+        
+        .heatmap {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 5px;
+            margin: 20px 0;
+        }
+        
+        .heatmap-cell {
+            aspect-ratio: 1;
+            background: rgba(167, 139, 250, 0.3);
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+        
+        .heatmap-cell:hover {
+            transform: scale(1.1);
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #a78bfa, #fbbf24);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            font-weight: 700;
+            transition: width 2s ease;
+        }
+        
+        .badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #1e3c72;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin: 10px 5px;
+            box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
+        }
+        
+        .ranking {
+            font-size: 6rem;
+            font-weight: 900;
+            color: #fbbf24;
+            text-shadow: 3px 3px 15px rgba(0, 0, 0, 0.5);
+        }
+        
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 1000px;
+        }
+        
+        .emoji {
+            font-size: 3rem;
+            margin: 20px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 3rem; }
+            .big-number { font-size: 2.5rem; }
+            .ranking { font-size: 4rem; }
+            .heatmap { grid-template-columns: repeat(6, 1fr); }
+        }
+        
+        .scroll-indicator {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: bounce 2s infinite;
+            opacity: 0.7;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); }
+            40% { transform: translateX(-50%) translateY(-10px); }
+            60% { transform: translateX(-50%) translateY(-5px); }
+        }
+        
+        .chart {
+            width: 100%;
+            max-width: 600px;
+            margin: 20px auto;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        
+        <!-- Hero Section -->
+        <div class="section hero">
+            <h1>✨ Server Summary's Plex Wrapped</h1>
+            <h2>2025</h2>
+            <div class="scroll-indicator">↓ Scroll Down ↓</div>
+        </div>
+        
+        <!-- Total Watch Time -->
+        <div class="section">
+            <div class="stat-card">
+                <h3>Your Total Watch Time</h3>
+                <div class="big-number">2554.4 hours</div>
+                <div class="subtitle">That's 106.4 days of entertainment!</div>
+                <div class="subtitle">You watched 937.4 hours of movies and 1617.0 hours of TV shows</div>
+            </div>
+        </div>
+        
+        <!-- Ranking -->
+        
+        <div class="section">
+            <div class="stat-card" style="text-align: center;">
+                <h3>Your Server Ranking</h3>
+                <div class="ranking">#1</div>
+                <div class="badge">🌟 Server Overview</div>
+                <div class="subtitle">Out of 12 users</div>
+            </div>
+        </div>
+        
+        
+        <!-- Most Watched -->
+        
+        
+        <!-- Peak Hours -->
+        
+        <div class="section">
+            <div class="stat-card">
+                <h3>When You Watch</h3>
+                <div class="subtitle">Your peak watching hour: 20:00</div>
+                <div class="heatmap">
+                    <div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.5552337207762195);" title="0:00 - 109h">00:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.4297029666287837);" title="1:00 - 55h">01:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.4226883330878818);" title="2:00 - 52h">02:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.4058931517177437);" title="3:00 - 45h">03:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.36787836349608155);" title="4:00 - 29h">04:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.3594373325256589);" title="5:00 - 25h">05:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.32327491587496976);" title="6:00 - 9h">06:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.3389134186022602);" title="7:00 - 16h">07:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.34369574016596227);" title="8:00 - 18h">08:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.40404013178430276);" title="9:00 - 44h">09:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.46675817839785927);" title="10:00 - 71h">10:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.49899411194255877);" title="11:00 - 85h">11:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.5187127596807463);" title="12:00 - 93h">12:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.4895766470953824);" title="13:00 - 81h">13:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.4947713271887096);" title="14:00 - 83h">14:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.4891623434783535);" title="15:00 - 81h">15:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.5552136215397127);" title="16:00 - 109h">16:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.7055533171613209);" title="17:00 - 173h">17:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.7743789382230977);" title="18:00 - 203h">18:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.886234431196238);" title="19:00 - 251h">19:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 1.0);" title="20:00 - 299h">20:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.9939280854875177);" title="21:00 - 297h">21:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.7505263313891721);" title="22:00 - 193h">22:00</div><div class="heatmap-cell" style="background: rgba(167, 139, 250, 0.5876952844597705);" title="23:00 - 123h">23:00</div>
+                </div>
+                <div style="margin-top: 30px;">
+                    <div class="list-item">
+                        <span class="name">🌅 Morning (6am-12pm)</span>
+                        <span class="value">9.7%</span>
+                    </div>
+                    <div class="list-item">
+                        <span class="name">☀️ Afternoon (12pm-6pm)</span>
+                        <span class="value">24.4%</span>
+                    </div>
+                    <div class="list-item">
+                        <span class="name">🌆 Evening (6pm-12am)</span>
+                        <span class="value">53.5%</span>
+                    </div>
+                    <div class="list-item">
+                        <span class="name">🌙 Night (12am-6am)</span>
+                        <span class="value">12.4%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        
+        <!-- Platform Breakdown -->
+        
+        <div class="section">
+            <div class="stat-card">
+                <h3>Your Favorite Devices</h3>
+                <div class="subtitle">Top platform: tvOS with 1110.8 hours</div>
+                
+            <div class="list-item">
+                <span class="name">tvOS</span>
+                <span class="value">1110.8 hrs (44.6%)</span>
+            </div>
+            
+            <div class="list-item">
+                <span class="name">Tizen</span>
+                <span class="value">286.0 hrs (11.5%)</span>
+            </div>
+            
+            <div class="list-item">
+                <span class="name">Xbox</span>
+                <span class="value">265.1 hrs (10.7%)</span>
+            </div>
+            
+            <div class="list-item">
+                <span class="name">Roku</span>
+                <span class="value">249.2 hrs (10.0%)</span>
+            </div>
+            
+            <div class="list-item">
+                <span class="name">Android</span>
+                <span class="value">130.1 hrs (5.2%)</span>
+            </div>
+            
+            </div>
+        </div>
+        
+        
+        <!-- Watch Streak -->
+        
+        <div class="section">
+            <div class="stat-card" style="text-align: center;">
+                <h3>Your Watch Streak</h3>
+                <div class="big-number">205 days</div>
+                <div class="subtitle">Longest streak: June 08 - December 29</div>
+                <div class="subtitle">You watched on 348 different days</div>
+                <div class="badge">🔥 Current streak: 205 days</div>
+            </div>
+        </div>
+        
+        
+        <!-- Binge Sessions -->
+        
+        <div class="section">
+            <div class="stat-card">
+                <h3>Epic Binge Sessions 🍿</h3>
+                <div class="big-number">41 episodes</div>
+                <div class="subtitle">Your biggest binge: One Pace on November 02, 2025</div>
+                
+            <div class="list-item">
+                <span class="name">1. One Pace</span>
+                <span class="value">41 episodes</span>
+            </div>
+            
+            <div class="list-item">
+                <span class="name">2. One Pace</span>
+                <span class="value">36 episodes</span>
+            </div>
+            
+            <div class="list-item">
+                <span class="name">3. Marvel's Daredevil</span>
+                <span class="value">23 episodes</span>
+            </div>
+            
+            <div class="list-item">
+                <span class="name">4. One Pace</span>
+                <span class="value">20 episodes</span>
+            </div>
+            
+            <div class="list-item">
+                <span class="name">5. Blark and Son</span>
+                <span class="value">20 episodes</span>
+            </div>
+            
+            </div>
+        </div>
+        
+        
+        <!-- Genre Diversity -->
+        
+        
+        <!-- Library Coverage -->
+        
+        
+        <!-- Unique Content -->
+        
+        
+        <!-- First and Last -->
+        
+        <div class="section">
+            <div class="stat-card">
+                <div class="grid-2">
+                    <div style="text-align: center;">
+                        <h3>First Watch</h3>
+                        <div class="emoji">🎬</div>
+                        <div class="subtitle">The Substance</div>
+                        <div class="subtitle">January 11, 2025</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <h3>Latest Watch</h3>
+                        <div class="emoji">📺</div>
+                        <div class="subtitle">Stranger Things - Chapter Six: Escape from Camazotz</div>
+                        <div class="subtitle">December 29, 2025</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        
+        <!-- Footer -->
+        <div class="section" style="min-height: 50vh;">
+            <div class="stat-card" style="text-align: center;">
+                <h3>Thanks for watching! 🎉</h3>
+                <p class="subtitle">Here's to another great year of entertainment</p>
+                <div class="emoji">🍿 📺 🎬</div>
+            </div>
+        </div>
+        
+    </div>
+</body>
+</html>
