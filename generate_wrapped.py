@@ -13,11 +13,12 @@ from definitions import tracked_media
 
 def get_date_range(period_type: Literal['monthly', 'yearly'] = 'monthly'):
     """Get date range for the analysis period"""
+    extra_months_back = 0
     today = date.today() + timedelta(days=1)
     if period_type == 'monthly':
         first_day_current_month = today.replace(day=1)
-        first = (first_day_current_month - relativedelta(months=1))
-        last = (first_day_current_month - relativedelta(days=1))
+        first = (first_day_current_month - relativedelta(months=1 + extra_months_back))
+        last = (first_day_current_month - relativedelta(days=1, months=extra_months_back))
     else:  # yearly
         first_day_current_year = today.replace(month=1, day=1)
         first = first_day_current_year

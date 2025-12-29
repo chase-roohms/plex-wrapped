@@ -13,7 +13,7 @@ def scan_wrapped_reports(reports_dir: str = "wrapped_reports") -> Dict[str, List
     if not reports_path.exists():
         return {}
     
-    # List of month names for detection
+    # List of month names for scanning
     months = ['january', 'february', 'march', 'april', 'may', 'june', 
               'july', 'august', 'september', 'october', 'november', 'december']
     
@@ -23,6 +23,36 @@ def scan_wrapped_reports(reports_dir: str = "wrapped_reports") -> Dict[str, List
             continue
         
         year = year_dir.name
+        
+        # Scan subdirectories: yearly reports vs month folders
+        for subdir in sorted(year_dir.iterdir()):
+            if not subdir.is_dir():
+                continue
+            
+            subdir_name = subdir.name.lower()
+            
+            # Check if this is a month folder
+            if subdir_name in months:
+                # This is a monthly report folder
+                month_files = sorted(subdir.glob("*.html"))
+                
+                for html_file in month_files:
+                    filename = html_file.name
+                    name_without_ext = filename.replace(".html", "")
+                    
+                    # Determine if this is the server summary
+                    is_server_summary = "server_summary" in filename.lower()
+                    
+                    # Remove the month suffix to get the username
+                    name = name_without_ext.replace(f"_{subdir_name}", "")
+                    
+                    reports_by_year[year]['monthly'][subdir_name].append({
+                        "name": name,
+                        "filename": filename,
+                        "path": f"{year}/{subdir_name}/{filename}",
+                        "is_server_summary": is_server_summary,
+                        "month": subdir_name.capitalize()
+                    })
         
         # Scan yearly reports (HTML files directly in year directory)
         html_files = sorted(year_dir.glob("*.html"))
@@ -46,37 +76,6 @@ def scan_wrapped_reports(reports_dir: str = "wrapped_reports") -> Dict[str, List
                 "path": f"{year}/{filename}",
                 "is_server_summary": is_server_summary
             })
-        
-        # Scan monthly reports (in year/monthly/ subdirectory)
-        monthly_dir = year_dir / "monthly"
-        if monthly_dir.exists() and monthly_dir.is_dir():
-            monthly_files = sorted(monthly_dir.glob("*.html"))
-            
-            for html_file in monthly_files:
-                filename = html_file.name
-                name_without_ext = filename.replace(".html", "")
-                
-                # Determine if this is the server summary
-                is_server_summary = "server_summary" in filename.lower()
-                
-                # Check if this is a monthly report by looking for month names
-                month_found = None
-                for month in months:
-                    if name_without_ext.endswith(f"_{month}"):
-                        month_found = month
-                        # Remove the month suffix to get the username
-                        name = name_without_ext.replace(f"_{month}", "")
-                        break
-                
-                if month_found:
-                    # This is a monthly report
-                    reports_by_year[year]['monthly'][month_found].append({
-                        "name": name,
-                        "filename": filename,
-                        "path": f"{year}/monthly/{filename}",
-                        "is_server_summary": is_server_summary,
-                        "month": month_found.capitalize()
-                    })
     
     # Sort reports within each category
     for year in reports_by_year:

@@ -23,7 +23,7 @@ class WrappedHTMLGenerator:
             favicon_html = f'\n    <link rel="icon" type="image/png" href="{user_thumb}">'
         
         # Calculate relative path to styles based on report location
-        # Monthly reports: 2025/monthly/user_november.html -> ../../../styles/
+        # Monthly reports: 2025/november/user_november.html -> ../../../styles/
         # Yearly reports: 2025/user_2025.html -> ../../styles/
         styles_path = "../../../styles" if period_type == 'monthly' else "../../styles"
         
@@ -178,20 +178,20 @@ class WrappedHTMLGenerator:
 </html>"""
         
         # Save to file in year subdirectory
-        # For monthly reports: period_label is "November 2025", save in year/monthly/ subdirectory
+        # For monthly reports: period_label is "November 2025", save in year/november/ subdirectory
         # For yearly reports: period_label is "2025", use as directory
         if period_type == 'monthly':
-            # Extract year from "November 2025" format
-            year = period_label.split()[-1]
-            # Use just the month for the filename part
-            month = period_label.split()[0].lower()
-            year_dir = os.path.join(self.output_dir, year, 'monthly')
-            os.makedirs(year_dir, exist_ok=True)
-            filename = os.path.join(year_dir, f"{user.lower().replace(' ', '_')}_{month}.html")
+            # Extract year and month from "November 2025" format
+            parts = period_label.split()
+            month = parts[0].lower()
+            year = parts[-1]
+            month_dir = os.path.join(self.output_dir, year, month)
+            os.makedirs(month_dir, exist_ok=True)
+            filename = os.path.join(month_dir, f"{user.lower().replace(' ', '_')}_{month}.html")
         else:  # yearly
             year_dir = os.path.join(self.output_dir, period_label)
             os.makedirs(year_dir, exist_ok=True)
-            filename = os.path.join(year_dir, f"{user.lower().replace(' ', '_')}_{year}.html")
+            filename = os.path.join(year_dir, f"{user.lower().replace(' ', '_')}_{period_label}.html")
         
         with open(filename, 'w', encoding='utf-8') as f:
             f.write(html)
