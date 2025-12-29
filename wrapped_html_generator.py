@@ -148,14 +148,7 @@ class WrappedHTMLGenerator:
         }}
         
         .list-item {{
-          
-        
-        @media (max-width: 768px) {{
-            .list-item {{
-                padding: 12px 15px;
-                margin: 8px 0;
-            }}
-        }}  background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.05);
             padding: 15px 20px;
             margin: 10px 0;
             border-radius: 10px;
@@ -245,6 +238,13 @@ class WrappedHTMLGenerator:
             max-width: 1000px;
         }}
         
+        .emoji {{
+            font-size: 3rem;
+            margin: 20px 0;
+        }}
+        
+        @media (max-width: 768px) {{
+            .hero h1 {{ 
                 font-size: 2.5rem; 
                 margin-bottom: 10px;
             }}
@@ -299,17 +299,15 @@ class WrappedHTMLGenerator:
                 margin: 8px 0;
             }}
             
+            .list-item {{
+                padding: 12px 15px;
+                margin: 8px 0;
+            }}
+            
             .list-item .name,
             .list-item .value {{
                 font-size: 0.95rem;
-           
-        }}
-        
-        @media (max-width: 768px) {{
-            .hero h1 {{ font-size: 3rem; }}
-            .big-number {{ font-size: 2.5rem; }}
-            .ranking {{ font-size: 4rem; }}
-            .heatmap {{ grid-template-columns: repeat(6, 1fr); }}
+            }}
         }}
         
         .scroll-indicator {{
