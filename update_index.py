@@ -106,11 +106,11 @@ def generate_index_html(reports_by_year: Dict[str, List[Dict[str, str]]]) -> str
     <meta property="og:title" content="Plex Wrapped Reports">
     <meta property="og:description" content="View personalized Plex viewing statistics and wrapped reports for all users.">
     <meta property="og:type" content="website">
-    <meta property="og:image" content="images/plex.jpg">
+    <meta property="og:image" content="images/plex.png">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Plex Wrapped Reports">
     <meta name="twitter:description" content="View personalized Plex viewing statistics and wrapped reports for all users.">
-    <meta name="twitter:image" content="images/plex.jpg">
+    <meta name="twitter:image" content="images/plex.png">
     <style>
         * {{
             margin: 0;

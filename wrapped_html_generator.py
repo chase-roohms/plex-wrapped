@@ -32,10 +32,10 @@ class WrappedHTMLGenerator:
     <!-- Open Graph / Social Media Meta Tags -->
     <meta property="og:title" content="{user}'s Plex Wrapped {period_label}">
     <meta property="og:description" content="Check out {user}'s Plex viewing stats for {period_label}!">
-    <meta property="og:image" content="images/plex.jpg">
+    <meta property="og:image" content="images/plex.png">
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:image" content="images/plex.jpg">
+    <meta name="twitter:image" content="images/plex.png">
     <style>
         * {{
             margin: 0;
