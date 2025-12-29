@@ -13,8 +13,8 @@ class WrappedHTMLGenerator:
         os.makedirs(output_dir, exist_ok=True)
     
     def generate_user_report(self, user: str, stats: Dict[str, Any], 
-                            period_label: str, user_thumb: str = None) -> str:
-        """Generate a complete wrapped report for a user"""
+                            period_label: str, user_thumb: str = None, is_server_summary: bool = False) -> str:
+        """Generate a complete wrapped report for a user or server summary"""
         
         # Add favicon link if user_thumb is provided
         favicon_html = ""
@@ -343,7 +343,7 @@ class WrappedHTMLGenerator:
         
         <!-- Hero Section -->
         <div class="section hero">
-            <h1>✨ {user}'s Plex Wrapped</h1>
+            <h1>✨ {'Server' if is_server_summary else user + "'s"} Plex Wrapped</h1>
             <h2>{period_label}</h2>
             <div class="scroll-indicator">↓ Scroll Down ↓</div>
         </div>
@@ -351,39 +351,43 @@ class WrappedHTMLGenerator:
         <!-- Total Watch Time -->
         <div class="section">
             <div class="stat-card">
-                <h3>Your Total Watch Time</h3>
+                <h3>{'Total Server Watch Time' if is_server_summary else 'Your Total Watch Time'}</h3>
                 <div class="big-number">{stats.get('total_hours', 0)} hours</div>
                 <div class="subtitle">That's {stats.get('total_days', 0)} days of entertainment!</div>
-                <div class="subtitle">You watched {stats.get('movie_hours', 0)} hours of movies and {stats.get('show_hours', 0)} hours of TV shows</div>
+                <div class="subtitle">{'The server watched' if is_server_summary else 'You watched'} {stats.get('movie_hours', 0)} hours of movies and {stats.get('show_hours', 0)} hours of TV shows</div>
+                {self._generate_item_counts(stats)}
             </div>
         </div>
         
         <!-- Ranking -->
-        {self._generate_ranking_section(stats.get('ranking', {}))}
+        {'' if is_server_summary else self._generate_ranking_section(stats.get('ranking', {}))}
         
         <!-- Most Watched -->
         {self._generate_most_watched_section(stats.get('top_watched', []))}
         
         <!-- Peak Hours -->
-        {self._generate_peak_hours_section(stats.get('peak_hours', {}))}
+        {self._generate_peak_hours_section(stats.get('peak_hours', {}), is_server_summary)}
         
         <!-- Platform Breakdown -->
-        {self._generate_platform_section(stats.get('platforms', {}))}
+        {self._generate_platform_section(stats.get('platforms', {}), is_server_summary)}
         
         <!-- Watch Streak -->
-        {self._generate_streak_section(stats.get('streak', {}))}
+        {self._generate_streak_section(stats.get('streak', {}), is_server_summary)}
         
         <!-- Binge Sessions -->
-        {self._generate_binge_section(stats.get('binge_sessions', []))}
+        {self._generate_binge_section(stats.get('binge_sessions', []), is_server_summary)}
         
         <!-- Genre Diversity -->
-        {self._generate_genre_section(stats.get('genres', {}))}
+        {self._generate_genre_section(stats.get('genres', {}), is_server_summary)}
         
         <!-- Library Coverage -->
-        {self._generate_library_section(stats.get('library_coverage', {}))}
+        {self._generate_library_section(stats.get('library_coverage', {}), is_server_summary)}
+        
+        <!-- Library Statistics (Server Summary Only) -->
+        {self._generate_library_stats_section(stats) if is_server_summary else ''}
         
         <!-- Unique Content -->
-        {self._generate_unique_content_section(stats.get('unique_content', {}))}
+        {'' if is_server_summary else self._generate_unique_content_section(stats.get('unique_content', {}))}
         
         <!-- First and Last -->
         {self._generate_first_last_section(stats.get('first_last', {}))}
@@ -472,6 +476,16 @@ class WrappedHTMLGenerator:
         
         return filename
     
+    def _generate_item_counts(self, stats: Dict[str, Any]) -> str:
+        """Generate movie and show count display"""
+        movie_count = stats.get('movie_count', 0)
+        show_count = stats.get('show_count', 0)
+        
+        if not movie_count and not show_count:
+            return ""
+        
+        return f'<div class="subtitle" style="margin-top: 15px;">📊 {movie_count} movies and {show_count} TV shows</div>'
+    
     def _generate_ranking_section(self, ranking: Dict[str, Any]) -> str:
         """Generate ranking section HTML"""
         if not ranking:
@@ -541,7 +555,7 @@ class WrappedHTMLGenerator:
         </div>
         """
     
-    def _generate_peak_hours_section(self, peak_hours: Dict[str, Any]) -> str:
+    def _generate_peak_hours_section(self, peak_hours: Dict[str, Any], is_server_summary: bool = False) -> str:
         """Generate peak hours heatmap section"""
         if not peak_hours:
             return ""
@@ -559,11 +573,14 @@ class WrappedHTMLGenerator:
         
         distribution = peak_hours.get('distribution', {})
         
+        peak_label = 'Peak watching hour' if is_server_summary else 'Your peak watching hour'
+        section_title = 'Peak Watching Times' if is_server_summary else 'When You Watch'
+        
         return f"""
         <div class="section">
             <div class="stat-card">
-                <h3>When You Watch</h3>
-                <div class="subtitle" id="peak-time-display" data-server-hour="{peak_hour}" data-server-tz="America/Chicago">Your peak watching hour: <span id="peak-hour-time">{peak_hours.get('peak_hour_formatted', 'Unknown')}</span> <span id="peak-hour-tz"></span></div>
+                <h3>{section_title}</h3>
+                <div class="subtitle" id="peak-time-display" data-server-hour="{peak_hour}" data-server-tz="America/Chicago">{peak_label}: <span id="peak-hour-time">{peak_hours.get('peak_hour_formatted', 'Unknown')}</span> <span id="peak-hour-tz"></span></div>
                 <div class="heatmap" id="hours-heatmap">
                     {cells}
                 </div>
@@ -589,7 +606,7 @@ class WrappedHTMLGenerator:
         </div>
         """
     
-    def _generate_platform_section(self, platforms: Dict[str, Any]) -> str:
+    def _generate_platform_section(self, platforms: Dict[str, Any], is_server_summary: bool = False) -> str:
         """Generate platform breakdown section"""
         if not platforms or not platforms.get('platforms'):
             return ""
@@ -610,31 +627,33 @@ class WrappedHTMLGenerator:
         return f"""
         <div class="section">
             <div class="stat-card">
-                <h3>Your Favorite Devices</h3>
+                <h3>{'Most Popular Devices' if is_server_summary else 'Your Favorite Devices'}</h3>
                 <div class="subtitle">Top platform: {top.get('name', 'Unknown')} with {top.get('hours', 0)} hours</div>
                 {items}
             </div>
         </div>
         """
     
-    def _generate_streak_section(self, streak: Dict[str, Any]) -> str:
+    def _generate_streak_section(self, streak: Dict[str, Any], is_server_summary: bool = False) -> str:
         """Generate watch streak section"""
         if not streak:
             return ""
         
+        days_label = 'Days with activity' if is_server_summary else 'You watched on'
+        
         return f"""
         <div class="section">
             <div class="stat-card" style="text-align: center;">
-                <h3>Your Watch Streak</h3>
+                <h3>{'Server Watch Streak' if is_server_summary else 'Your Watch Streak'}</h3>
                 <div class="big-number">{streak.get('longest_streak', 0)} days</div>
                 <div class="subtitle">Longest streak: {streak.get('streak_start', '')} - {streak.get('streak_end', '')}</div>
-                <div class="subtitle">You watched on {streak.get('total_active_days', 0)} different days</div>
+                <div class="subtitle">{days_label} {streak.get('total_active_days', 0)} different days</div>
                 {f'<div class="badge">🔥 Current streak: {streak.get("current_streak", 0)} days</div>' if streak.get('current_streak', 0) > 0 else ''}
             </div>
         </div>
         """
     
-    def _generate_binge_section(self, binge_sessions: List[Dict[str, Any]]) -> str:
+    def _generate_binge_section(self, binge_sessions: List[Dict[str, Any]], is_server_summary: bool = False) -> str:
         """Generate binge sessions section"""
         if not binge_sessions:
             return ""
@@ -650,18 +669,20 @@ class WrappedHTMLGenerator:
             </div>
             """
         
+        biggest_label = 'Biggest binge' if is_server_summary else 'Your biggest binge'
+        
         return f"""
         <div class="section">
             <div class="stat-card">
-                <h3>Epic Binge Sessions 🍿</h3>
+                <h3>{'Top Binge Sessions' if is_server_summary else 'Epic Binge Sessions'} 🍿</h3>
                 <div class="big-number">{top_binge.get('episode_count', 0)} episodes</div>
-                <div class="subtitle">Your biggest binge: {top_binge.get('show', 'Unknown')} on {top_binge.get('date', 'Unknown')}</div>
+                <div class="subtitle">{biggest_label}: {top_binge.get('show', 'Unknown')} on {top_binge.get('date', 'Unknown')}</div>
                 {items}
             </div>
         </div>
         """
     
-    def _generate_genre_section(self, genres: Dict[str, Any]) -> str:
+    def _generate_genre_section(self, genres: Dict[str, Any], is_server_summary: bool = False) -> str:
         """Generate genre diversity section"""
         if not genres:
             return ""
@@ -678,16 +699,16 @@ class WrappedHTMLGenerator:
         return f"""
         <div class="section">
             <div class="stat-card">
-                <h3>Genre Explorer</h3>
+                <h3>{'Genre Breakdown' if is_server_summary else 'Genre Explorer'}</h3>
                 <div class="big-number">{genres.get('unique_genres', 0)}</div>
-                <div class="subtitle">Unique genres explored</div>
-                <h4 style="margin-top: 20px; color: #a78bfa;">Your Top Genres</h4>
+                <div class="subtitle">Unique genres {'watched' if is_server_summary else 'explored'}</div>
+                <h4 style="margin-top: 20px; color: #a78bfa;">{'Most Popular Genres' if is_server_summary else 'Your Top Genres'}</h4>
                 {items}
             </div>
         </div>
         """
     
-    def _generate_library_section(self, library_coverage: Dict[str, Any]) -> str:
+    def _generate_library_section(self, library_coverage: Dict[str, Any], is_server_summary: bool = False) -> str:
         """Generate library coverage section"""
         if not library_coverage or not library_coverage.get('libraries'):
             return ""
@@ -738,6 +759,33 @@ class WrappedHTMLGenerator:
                 <div class="subtitle">Unique titles only YOU watched</div>
                 <div style="margin-top: 20px;">
                     {items}
+                </div>
+            </div>
+        </div>
+        """
+    
+    def _generate_library_stats_section(self, stats: Dict[str, Any]) -> str:
+        """Generate library statistics section (server summary only)"""
+        library_movies = stats.get('library_movie_count', 0)
+        library_shows = stats.get('library_show_count', 0)
+        
+        if not library_movies and not library_shows:
+            return ""
+        
+        return f"""
+        <div class="section">
+            <div class="stat-card" style="text-align: center;">
+                <h3>📚 Library Statistics</h3>
+                <div class="subtitle" style="font-size: 1.5rem; margin: 20px 0;">Total Content Available</div>
+                <div style="display: flex; justify-content: space-around; margin: 30px 0;">
+                    <div>
+                        <div class="big-number" style="font-size: 3rem;">{library_movies}</div>
+                        <div class="subtitle">Movies</div>
+                    </div>
+                    <div>
+                        <div class="big-number" style="font-size: 3rem;">{library_shows}</div>
+                        <div class="subtitle">TV Shows</div>
+                    </div>
                 </div>
             </div>
         </div>

@@ -102,12 +102,28 @@ def generate_wrapped_reports(period: Literal['monthly', 'yearly'] = 'yearly'):
         # Find user's ranking
         user_ranking = next((r for r in rankings if r['user'] == user), None)
         
+        # Count unique movies and shows for this user
+        unique_movies = set()
+        unique_shows = set()
+        for entry in history:
+            media_type = entry.get('media_type')
+            if media_type == 'movie':
+                rating_key = entry.get('rating_key')
+                if rating_key:
+                    unique_movies.add(rating_key)
+            elif media_type == 'episode':
+                grandparent_key = entry.get('grandparent_rating_key')
+                if grandparent_key:
+                    unique_shows.add(grandparent_key)
+        
         # Collect all statistics
         wrapped_stats = {
             'total_hours': round(total_seconds / 3600, 1),
             'total_days': round(total_seconds / 86400, 1),
             'movie_hours': round(movie_seconds / 3600, 1),
             'show_hours': round(episode_seconds / 3600, 1),
+            'movie_count': len(unique_movies),
+            'show_count': len(unique_shows),
             'ranking': {
                 'rank': user_ranking['rank'] if user_ranking else None,
                 'callout': user_ranking['callout'] if user_ranking else None,
@@ -224,11 +240,45 @@ def generate_wrapped_reports(period: Literal['monthly', 'yearly'] = 'yearly'):
     # Generate summary report
     print("\n📊 Generating server summary report...")
     try:
+        # Count unique movies and shows watched across all users
+        unique_movies_watched = set()
+        unique_shows_watched = set()
+        for entry in all_history:
+            media_type = entry.get('media_type')
+            if media_type == 'movie':
+                rating_key = entry.get('rating_key')
+                if rating_key:
+                    unique_movies_watched.add(rating_key)
+            elif media_type == 'episode':
+                grandparent_key = entry.get('grandparent_rating_key')
+                if grandparent_key:
+                    unique_shows_watched.add(grandparent_key)
+        
+        # Get total library counts
+        print("    - Getting library statistics...")
+        libraries_response = client.get_libraries()
+        libraries = libraries_response.get('data', [])
+        
+        total_library_movies = 0
+        total_library_shows = 0
+        
+        for library in libraries:
+            section_type = library.get('section_type')
+            count = int(library.get('count', 0))
+            if section_type == 'movie':
+                total_library_movies += count
+            elif section_type == 'show':
+                total_library_shows += count
+        
         summary_stats = {
             'total_hours': round(sum(s.get('total', 0) for s in user_stats.values()) / 3600, 1),
             'total_days': round(sum(s.get('total', 0) for s in user_stats.values()) / 86400, 1),
             'movie_hours': round(sum(s.get('movie', 0) for s in user_stats.values()) / 3600, 1),
             'show_hours': round(sum(s.get('episode', 0) for s in user_stats.values()) / 3600, 1),
+            'movie_count': len(unique_movies_watched),
+            'show_count': len(unique_shows_watched),
+            'library_movie_count': total_library_movies,
+            'library_show_count': total_library_shows,
             'ranking': {
                 'rank': 1,
                 'callout': '🌟 Server Overview',
@@ -254,7 +304,7 @@ def generate_wrapped_reports(period: Literal['monthly', 'yearly'] = 'yearly'):
             'unique_content': {}
         })
         
-        filename = html_generator.generate_user_report('Server Summary', summary_stats, period_label)
+        filename = html_generator.generate_user_report('Server Summary', summary_stats, period_label, is_server_summary=True)
         generated_files.append(filename)
         print(f"✅ Summary report saved: {filename}")
     except Exception as e:

@@ -341,26 +341,33 @@ class WrappedAnalytics:
         if target_user not in all_users_history:
             return {'unique_items': []}
         
-        # Get all rating keys for target user
+        # Get all title+year combinations for target user
         user_items = set()
         user_item_details = {}
         for item in all_users_history[target_user]:
-            key = item.get('grandparent_rating_key') or item.get('rating_key')
-            if key:
+            title = item.get('grandparent_title') or item.get('title')
+            year = item.get('year')
+            
+            if title:
+                # Create a unique key using title + year
+                key = f"{title}|||{year}" if year else f"{title}|||None"
                 user_items.add(key)
                 if key not in user_item_details:
                     user_item_details[key] = {
-                        'title': item.get('grandparent_title') or item.get('title'),
+                        'title': f"{title} ({year})" if year else title,
                         'type': item.get('media_type')
                     }
         
-        # Get all rating keys for other users
+        # Get all title+year combinations for other users
         other_users_items = set()
         for user, history in all_users_history.items():
             if user != target_user:
                 for item in history:
-                    key = item.get('grandparent_rating_key') or item.get('rating_key')
-                    if key:
+                    title = item.get('grandparent_title') or item.get('title')
+                    year = item.get('year')
+                    
+                    if title:
+                        key = f"{title}|||{year}" if year else f"{title}|||None"
                         other_users_items.add(key)
         
         # Find unique items
