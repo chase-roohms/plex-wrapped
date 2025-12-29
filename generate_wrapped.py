@@ -40,7 +40,7 @@ def generate_wrapped_reports(period: Literal['monthly', 'yearly'] = 'yearly'):
     first, last = get_date_range(period)
     first_str = first.strftime("%Y-%m-%d")
     last_str = last.strftime("%Y-%m-%d")
-    period_label = first.strftime('%B') if period == 'monthly' else str(first.year)
+    period_label = first.strftime('%B %Y') if period == 'monthly' else str(first.year)
     
     print(f"📅 Period: {first_str} to {last_str}")
     print(f"🏷️  Label: {period_label}")
@@ -231,7 +231,7 @@ def generate_wrapped_reports(period: Literal['monthly', 'yearly'] = 'yearly'):
                 except Exception as e:
                     print(f"    ⚠️  Could not fetch user profile picture: {e}")
             
-            filename = html_generator.generate_user_report(user, wrapped_stats, period_label, user_thumb)
+            filename = html_generator.generate_user_report(user, wrapped_stats, period_label, user_thumb, period_type=period)
             generated_files.append(filename)
             print(f"    ✅ Report saved: {filename}")
         except Exception as e:
@@ -304,7 +304,7 @@ def generate_wrapped_reports(period: Literal['monthly', 'yearly'] = 'yearly'):
             'unique_content': {}
         })
         
-        filename = html_generator.generate_user_report('Server Summary', summary_stats, period_label, is_server_summary=True)
+        filename = html_generator.generate_user_report('Server Summary', summary_stats, period_label, is_server_summary=True, period_type=period)
         generated_files.append(filename)
         print(f"✅ Summary report saved: {filename}")
     except Exception as e:
