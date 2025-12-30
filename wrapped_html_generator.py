@@ -2,7 +2,6 @@
 from typing import Dict, List, Any
 import os
 import json
-import base64
 
 
 class WrappedHTMLGenerator:
@@ -73,7 +72,7 @@ class WrappedHTMLGenerator:
         {'' if is_server_summary else self._generate_ranking_section(stats.get('ranking', {}))}
         
         <!-- Most Watched -->
-        {self._generate_most_watched_section(stats.get('top_watched', []))}
+        {self._generate_most_watched_section(stats.get('top_watched', []), period_type)}
         
         <!-- Peak Hours -->
         {self._generate_peak_hours_section(stats.get('peak_hours', {}), is_server_summary)}
@@ -224,32 +223,38 @@ class WrappedHTMLGenerator:
         </div>
         """
     
-    def _generate_most_watched_section(self, top_watched: List[Dict[str, Any]]) -> str:
+    def _generate_most_watched_section(self, top_watched: List[Dict[str, Any]], period_type: str = 'yearly') -> str:
         """Generate most watched section with poster images"""
         if not top_watched:
             return ""
         
+        # Calculate relative path to thumbnails based on report location
+        # Monthly reports: 2025/november/user_november.html -> ../../../thumbnails/
+        # Yearly reports: 2025/user_2025.html -> ../../thumbnails/
+        thumbnails_path = "../../../thumbnails" if period_type == 'monthly' else "../../thumbnails"
+        
         items_html = ""
         for i, item in enumerate(top_watched, 1):
-            # Convert image to base64 for embedding
-            img_data = ""
+            # Get thumbnail filename from path
             thumbnail_path = item.get('thumbnail', '')
+            has_thumbnail = False
+            
             if thumbnail_path and os.path.exists(thumbnail_path):
                 try:
                     # Verify it's a real image
                     from PIL import Image as PILImage
                     test_img = PILImage.open(thumbnail_path)
                     if test_img.size[0] > 100:  # Real images are larger than placeholders
-                        with open(thumbnail_path, 'rb') as f:
-                            img_bytes = f.read()
-                            img_data = base64.b64encode(img_bytes).decode('utf-8')
+                        has_thumbnail = True
                 except Exception as e:
-                    print(f"Error encoding image: {e}")
+                    print(f"Error checking image: {e}")
             
             # Show poster or placeholder icon
             image_html = ""
-            if img_data:
-                image_html = f'<img src="data:image/jpeg;base64,{img_data}" style="width: 80px; height: 120px; border-radius: 8px; margin: 0 15px; object-fit: cover;" alt="{item.get("title", "")}">'
+            if has_thumbnail:
+                # Get just the filename from the full path
+                thumbnail_filename = os.path.basename(thumbnail_path)
+                image_html = f'<img src="{thumbnails_path}/{thumbnail_filename}" style="width: 80px; height: 120px; border-radius: 8px; margin: 0 15px; object-fit: cover;" alt="{item.get("title", "")}">'
             else:
                 # Use a nice icon instead of gray box
                 image_html = '<div style="width: 80px; height: 120px; background: linear-gradient(135deg, #2a5298, #7e22ce); border-radius: 8px; margin: 0 15px; display: flex; align-items: center; justify-content: center; font-size: 2rem;">🎬</div>'

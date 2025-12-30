@@ -490,16 +490,44 @@ class WrappedAnalytics:
                     url = f"{plex_base_url}{thumb}?X-Plex-Token={plex_token}"
                     response = requests.get(url, verify=False, timeout=10)
                     if response.status_code == 200 and len(response.content) > 5000:  # Valid image should be larger
-                        with open(thumbnail_path, 'wb') as f:
+                        # Save original image temporarily
+                        temp_path = thumbnail_path + '.temp'
+                        with open(temp_path, 'wb') as f:
                             f.write(response.content)
                         
-                        # Verify the saved image
+                        # Resize image to reduce file size
                         try:
-                            img = Image.open(thumbnail_path)
+                            img = Image.open(temp_path)
                             if img.size[0] > 100:
+                                # Convert RGBA or P mode images to RGB for JPEG
+                                if img.mode in ('RGBA', 'P', 'LA'):
+                                    # Create white background
+                                    rgb_img = Image.new('RGB', img.size, (255, 255, 255))
+                                    if img.mode == 'P':
+                                        img = img.convert('RGBA')
+                                    rgb_img.paste(img, mask=img.split()[-1] if img.mode in ('RGBA', 'LA') else None)
+                                    img = rgb_img
+                                elif img.mode != 'RGB':
+                                    img = img.convert('RGB')
+                                
+                                # Resize to max width of 300px while maintaining aspect ratio
+                                max_width = 300
+                                if img.width > max_width:
+                                    ratio = max_width / img.width
+                                    new_height = int(img.height * ratio)
+                                    img = img.resize((max_width, new_height), Image.Resampling.LANCZOS)
+                                
+                                # Save with optimization and reduced quality
+                                img.save(thumbnail_path, 'JPEG', quality=85, optimize=True)
+                                
+                                # Remove temp file
+                                os.remove(temp_path)
                                 return thumbnail_path
-                        except:
-                            pass
+                        except Exception as e:
+                            print(f"    ⚠️  Could not resize thumbnail: {e}")
+                            # Clean up temp file if it exists
+                            if os.path.exists(temp_path):
+                                os.remove(temp_path)
                     else:
                         raise Exception(f"Invalid thumbnail image for {title}")    
                 else:
