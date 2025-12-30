@@ -2,6 +2,8 @@
 
 Generate Wrapped-style viewing reports for Plex Media Server users using the Tautulli API.
 
+Check out a demo: https://plex-wrapped.neonvariant.com/wrapped_reports/2025/neonvariant_2025.html
+
 ## Features
 
 - Individual user reports with viewing statistics
