@@ -529,11 +529,11 @@ class WrappedAnalytics:
                             if os.path.exists(temp_path):
                                 os.remove(temp_path)
                     else:
-                        raise Exception(f"Invalid thumbnail image for {title}")    
+                        raise Exception(f"Invalid thumbnail image for {title} ({rating_key}.jpg)")    
                 else:
-                    raise Exception(f"Invalid thumbnail image for {title}")
+                    raise Exception(f"Invalid thumbnail image for {title} ({rating_key}.jpg)")
             except Exception as e:
-                print(f"    ⚠️  Could not download thumbnail for {title}: {e}")
+                print(f"    ⚠️  Could not download thumbnail for {title} ({rating_key}.jpg): {e}")
             
             # If we get here, download failed - don't create placeholder
             # Return empty string so we can skip showing it
