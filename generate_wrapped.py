@@ -9,6 +9,7 @@ from tautulli_client import TautulliClient
 from wrapped_analytics import WrappedAnalytics
 from wrapped_html_generator import WrappedHTMLGenerator
 from definitions import tracked_media
+from update_index import update_index
 
 
 def get_date_range(period_type: Literal['monthly', 'yearly'] = 'monthly'):
@@ -333,3 +334,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
     
     generate_wrapped_reports(period=args.period)
+    update_index()
