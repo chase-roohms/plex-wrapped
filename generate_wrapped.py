@@ -14,16 +14,30 @@ from update_index import update_index
 
 def get_date_range(period_type: Literal['monthly', 'yearly'] = 'monthly'):
     """Get date range for the analysis period"""
-    extra_months_back = 0
-    today = date.today() + timedelta(days=1)
+    today = date.today()
     if period_type == 'monthly':
-        first_day_current_month = today.replace(day=1)
-        first = (first_day_current_month - relativedelta(months=1 + extra_months_back))
-        last = (first_day_current_month - relativedelta(days=1, months=extra_months_back))
+        # Use current month if we're past the 15th, otherwise use previous month
+        if today.day >= 15:
+            # Current month from the 1st to today
+            first = today.replace(day=1)
+            last = today
+        else:
+            # Previous complete month
+            first_day_current_month = today.replace(day=1)
+            first = first_day_current_month - relativedelta(months=1)
+            last = first_day_current_month - relativedelta(days=1)
     else:  # yearly
-        first_day_current_year = today.replace(month=1, day=1)
-        first = first_day_current_year
-        last = today
+        # Use current year if we're past June 30, otherwise use previous year
+        halfway_point = date(today.year, 6, 30)
+        if today > halfway_point:
+            # Current year from Jan 1 to today
+            first = today.replace(month=1, day=1)
+            last = today
+        else:
+            # Previous complete year
+            first = date(today.year - 1, 1, 1)
+            last = date(today.year - 1, 12, 31)
+    
     return first, last
 
 
