@@ -179,38 +179,49 @@ class WrappedAnalytics:
         }
     
     def detect_binge_sessions(self, history_data: List[Dict]) -> List[Dict[str, Any]]:
-        """Detect binge watching sessions (consecutive episodes)"""
-        # Group by grandparent (show) and sort by date
+        """
+        Detect binge watching sessions (consecutive episodes)
+        A binge session is defined as watching 3+ episodes of the same show with
+        less than 30 minutes between the time you finish one episode and start the next.
+        """
+        # Group by grandparent (show) and sort by start time
         show_watches = defaultdict(list)
         
         for item in history_data:
             if item.get('media_type') == 'episode':
                 grandparent = item.get('grandparent_title')
-                if grandparent:
+                started = item.get('started')
+                stopped = item.get('stopped')
+                
+                # Only process if we have start and stop times
+                if grandparent and started and stopped:
                     show_watches[grandparent].append({
-                        'date': item.get('date'),
+                        'started': started,
+                        'stopped': stopped,
                         'title': item.get('full_title'),
                         'episode_index': item.get('media_index'),
                         'season': item.get('parent_media_index')
                     })
         
-        # Detect binge sessions (3+ episodes within 8 hours)
+        # Detect binge sessions (3+ episodes with <30 min between finish and next start)
         binge_sessions = []
         
         for show, episodes in show_watches.items():
             if len(episodes) < 3:
                 continue
                 
-            sorted_episodes = sorted(episodes, key=lambda x: x['date'])
+            # Sort by start time
+            sorted_episodes = sorted(episodes, key=lambda x: x['started'])
             
-            # Look for consecutive episodes within time window
+            # Look for consecutive episodes with <30 minutes between finish and next start
             session_episodes = [sorted_episodes[0]]
             
             for i in range(1, len(sorted_episodes)):
-                time_diff = sorted_episodes[i]['date'] - session_episodes[-1]['date']
+                # Calculate time between finish of previous episode and start of current episode
+                time_between = sorted_episodes[i]['started'] - session_episodes[-1]['stopped']
                 
-                # If within 8 hours, add to session
-                if time_diff <= 28800:  # 8 hours in seconds
+                # If less than 30 minutes (1800 seconds), add to session
+                if time_between <= 1800:  # 30 minutes in seconds
                     session_episodes.append(sorted_episodes[i])
                 else:
                     # End session if 3+ episodes
@@ -218,7 +229,7 @@ class WrappedAnalytics:
                         binge_sessions.append({
                             'show': show,
                             'episode_count': len(session_episodes),
-                            'date': datetime.fromtimestamp(session_episodes[0]['date']).strftime('%B %d, %Y'),
+                            'date': datetime.fromtimestamp(session_episodes[0]['started']).strftime('%B %d, %Y'),
                             'episodes': session_episodes
                         })
                     session_episodes = [sorted_episodes[i]]
@@ -228,7 +239,7 @@ class WrappedAnalytics:
                 binge_sessions.append({
                     'show': show,
                     'episode_count': len(session_episodes),
-                    'date': datetime.fromtimestamp(session_episodes[0]['date']).strftime('%B %d, %Y'),
+                    'date': datetime.fromtimestamp(session_episodes[0]['started']).strftime('%B %d, %Y'),
                     'episodes': session_episodes
                 })
         

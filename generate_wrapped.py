@@ -343,7 +343,7 @@ if __name__ == '__main__':
     
     parser = argparse.ArgumentParser(description='Generate Plex Wrapped reports')
     parser.add_argument('--period', type=str, choices=['monthly', 'yearly'], 
-                       default='yearly', help='Report period (monthly or yearly)')
+                       default='monthly', help='Report period (monthly or yearly)')
     
     args = parser.parse_args()
     
