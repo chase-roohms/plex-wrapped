@@ -2,18 +2,24 @@
 from typing import Dict, List, Tuple, Any
 from datetime import datetime, timedelta
 from collections import defaultdict, Counter
+from difflib import SequenceMatcher
 import requests
 import os
+import yaml
 from PIL import Image
 
 
 class WrappedAnalytics:
     """Compute Spotify Wrapped-style statistics from Tautulli data"""
     
+    KOMETA_MOVIE_URL = 'https://raw.githubusercontent.com/chase-roohms/kometa-configs/refs/heads/main/movie-metadata.yml'
+    KOMETA_SHOW_URL = 'https://raw.githubusercontent.com/chase-roohms/kometa-configs/refs/heads/main/show-metadata.yml'
+
     def __init__(self, client):
         self.client = client
         self.thumbnail_dir = 'thumbnails'
         os.makedirs(self.thumbnail_dir, exist_ok=True)
+        self._kometa_cache = {}
         
     @staticmethod
     def format_duration(seconds: int) -> str:
@@ -461,7 +467,7 @@ class WrappedAnalytics:
         result = []
         for rating_key, stats in sorted_items:
             # Download thumbnail
-            thumbnail_path = self._download_thumbnail(stats['rating_key'], stats['title'])
+            thumbnail_path = self._download_thumbnail(stats['rating_key'], stats['title'], stats['type'])
             
             result.append({
                 'title': stats['title'],
@@ -474,8 +480,108 @@ class WrappedAnalytics:
         
         return result
     
-    def _download_thumbnail(self, rating_key: int, title: str) -> str:
-        """Download thumbnail from Plex server"""
+    def _fetch_kometa_metadata(self, media_type: str) -> dict:
+        """Fetch and cache Kometa metadata YAML for movies or shows"""
+        cache_key = 'show' if media_type == 'episode' else 'movie'
+        if cache_key in self._kometa_cache:
+            return self._kometa_cache[cache_key]
+
+        url = self.KOMETA_SHOW_URL if cache_key == 'show' else self.KOMETA_MOVIE_URL
+        try:
+            response = requests.get(url, timeout=30)
+            if response.status_code == 200:
+                data = yaml.safe_load(response.text)
+                metadata = data.get('metadata', {})
+                self._kometa_cache[cache_key] = metadata
+                return metadata
+        except Exception as e:
+            print(f"    ⚠️  Could not fetch Kometa {cache_key} metadata: {e}")
+        self._kometa_cache[cache_key] = {}
+        return {}
+
+    def _find_kometa_poster(self, title: str, media_type: str, year: str = None) -> str:
+        """Fuzzy match title+year against Kometa metadata and return poster URL"""
+        metadata = self._fetch_kometa_metadata(media_type)
+        if not metadata:
+            return ''
+
+        # Strip trailing '...' from truncated titles
+        search_title = title.rstrip('.').rstrip() if title.endswith('...') else title
+        search_lower = search_title.lower()
+
+        best_url = ''
+        best_score = 0.0
+
+        for _id, entry in metadata.items():
+            if not isinstance(entry, dict):
+                continue
+            label = entry.get('label_title', '')
+            if not label:
+                continue
+
+            label_lower = label.lower()
+
+            # Quick check: if share no common words, skip
+            ratio = SequenceMatcher(None, search_lower, label_lower).ratio()
+
+            # Boost score if year matches
+            entry_year = str(entry.get('release_year', ''))
+            if year and entry_year == str(year):
+                ratio += 0.1
+
+            if ratio > best_score:
+                best_score = ratio
+                best_url = entry.get('url_poster', '')
+
+        # Require a reasonable match threshold
+        if best_score >= 0.6 and best_url:
+            return best_url
+        return ''
+
+    def _save_thumbnail_from_url(self, url: str, thumbnail_path: str, title: str) -> str:
+        """Download an image from a URL and save as optimized thumbnail"""
+        try:
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+                              'AppleWebKit/537.36 (KHTML, like Gecko) '
+                              'Chrome/114.0.0.0 Safari/537.36'
+            }
+            response = requests.get(url, headers=headers, timeout=15)
+            if response.status_code != 200 or len(response.content) < 1000:
+                return ''
+
+            temp_path = thumbnail_path + '.temp'
+            with open(temp_path, 'wb') as f:
+                f.write(response.content)
+
+            img = Image.open(temp_path)
+            if img.mode in ('RGBA', 'P', 'LA'):
+                rgb_img = Image.new('RGB', img.size, (255, 255, 255))
+                if img.mode == 'P':
+                    img = img.convert('RGBA')
+                rgb_img.paste(img, mask=img.split()[-1] if img.mode in ('RGBA', 'LA') else None)
+                img = rgb_img
+            elif img.mode != 'RGB':
+                img = img.convert('RGB')
+
+            max_width = 300
+            if img.width > max_width:
+                ratio = max_width / img.width
+                new_height = int(img.height * ratio)
+                img = img.resize((max_width, new_height), Image.Resampling.LANCZOS)
+
+            img.save(thumbnail_path, 'JPEG', quality=85, optimize=True)
+            os.remove(temp_path)
+            print(f"    ✅ Downloaded Kometa poster for {title}")
+            return thumbnail_path
+        except Exception as e:
+            print(f"    ⚠️  Could not download Kometa poster for {title}: {e}")
+            if os.path.exists(thumbnail_path + '.temp'):
+                os.remove(thumbnail_path + '.temp')
+            return ''
+
+    def _download_thumbnail(self, rating_key: int, title: str, media_type: str = '') -> str:
+        """Download thumbnail from Plex server, falling back to Kometa metadata"""
         thumbnail_path = f'{self.thumbnail_dir}/{rating_key}.jpg'
         
         # Return if already exists and is valid
@@ -488,68 +594,67 @@ class WrappedAnalytics:
             except:
                 pass
         
+        metadata_year = None
+        metadata_data = {}
+
+        # Try Plex download first
         try:
-            # Get the thumbnail URL from Plex
             plex_base_url = self.client.plex_base_url
             plex_token = self.client.plex_token
-            
-            # Try to get metadata for better thumbnail
-            try:
-                metadata = self.client.get_metadata(rating_key)
-                thumb = metadata.get('data', {}).get('thumb', '')
-                if thumb:
-                    url = f"{plex_base_url}{thumb}?X-Plex-Token={plex_token}"
-                    response = requests.get(url, verify=False, timeout=10)
-                    if response.status_code == 200 and len(response.content) > 5000:  # Valid image should be larger
-                        # Save original image temporarily
-                        temp_path = thumbnail_path + '.temp'
-                        with open(temp_path, 'wb') as f:
-                            f.write(response.content)
-                        
-                        # Resize image to reduce file size
-                        try:
-                            img = Image.open(temp_path)
-                            if img.size[0] > 100:
-                                # Convert RGBA or P mode images to RGB for JPEG
-                                if img.mode in ('RGBA', 'P', 'LA'):
-                                    # Create white background
-                                    rgb_img = Image.new('RGB', img.size, (255, 255, 255))
-                                    if img.mode == 'P':
-                                        img = img.convert('RGBA')
-                                    rgb_img.paste(img, mask=img.split()[-1] if img.mode in ('RGBA', 'LA') else None)
-                                    img = rgb_img
-                                elif img.mode != 'RGB':
-                                    img = img.convert('RGB')
-                                
-                                # Resize to max width of 300px while maintaining aspect ratio
-                                max_width = 300
-                                if img.width > max_width:
-                                    ratio = max_width / img.width
-                                    new_height = int(img.height * ratio)
-                                    img = img.resize((max_width, new_height), Image.Resampling.LANCZOS)
-                                
-                                # Save with optimization and reduced quality
-                                img.save(thumbnail_path, 'JPEG', quality=85, optimize=True)
-                                
-                                # Remove temp file
-                                os.remove(temp_path)
-                                return thumbnail_path
-                        except Exception as e:
-                            print(f"    ⚠️  Could not resize thumbnail: {e}")
-                            # Clean up temp file if it exists
-                            if os.path.exists(temp_path):
-                                os.remove(temp_path)
-                    else:
-                        raise Exception(f"Invalid thumbnail image for {title} ({rating_key}.jpg)")    
+
+            metadata = self.client.get_metadata(rating_key)
+            metadata_data = metadata.get('data', {})
+            metadata_year = metadata_data.get('year')
+            thumb = metadata_data.get('thumb', '')
+            if thumb:
+                url = f"{plex_base_url}{thumb}?X-Plex-Token={plex_token}"
+                response = requests.get(url, verify=False, timeout=10)
+                if response.status_code == 200 and len(response.content) > 5000:
+                    temp_path = thumbnail_path + '.temp'
+                    with open(temp_path, 'wb') as f:
+                        f.write(response.content)
+
+                    try:
+                        img = Image.open(temp_path)
+                        if img.size[0] > 100:
+                            if img.mode in ('RGBA', 'P', 'LA'):
+                                rgb_img = Image.new('RGB', img.size, (255, 255, 255))
+                                if img.mode == 'P':
+                                    img = img.convert('RGBA')
+                                rgb_img.paste(img, mask=img.split()[-1] if img.mode in ('RGBA', 'LA') else None)
+                                img = rgb_img
+                            elif img.mode != 'RGB':
+                                img = img.convert('RGB')
+
+                            max_width = 300
+                            if img.width > max_width:
+                                ratio = max_width / img.width
+                                new_height = int(img.height * ratio)
+                                img = img.resize((max_width, new_height), Image.Resampling.LANCZOS)
+
+                            img.save(thumbnail_path, 'JPEG', quality=85, optimize=True)
+                            os.remove(temp_path)
+                            return thumbnail_path
+                    except Exception as e:
+                        print(f"    ⚠️  Could not resize thumbnail: {e}")
+                    finally:
+                        if os.path.exists(temp_path):
+                            os.remove(temp_path)
                 else:
                     raise Exception(f"Invalid thumbnail image for {title} ({rating_key}.jpg)")
-            except Exception as e:
-                print(f"    ⚠️  Could not download thumbnail for {title} ({rating_key}.jpg): {e}")
-            
-            # If we get here, download failed - don't create placeholder
-            # Return empty string so we can skip showing it
-            return ""
-            
+            else:
+                raise Exception(f"Invalid thumbnail image for {title} ({rating_key}.jpg)")
         except Exception as e:
-            print(f"    ⚠️  Error downloading thumbnail: {e}")
-            return ""
+            print(f"    ⚠️  Could not download thumbnail for {title} ({rating_key}.jpg): {e}")
+
+        # Plex download failed - try Kometa fallback
+        if media_type:
+            full_title = (metadata_data.get('title') or metadata_data.get('grandparent_title')) if metadata_data else None
+            search_title = full_title or title
+            poster_url = self._find_kometa_poster(search_title, media_type, metadata_year)
+            if poster_url:
+                result = self._save_thumbnail_from_url(poster_url, thumbnail_path, title)
+                if result:
+                    return result
+
+        return ""

@@ -299,7 +299,8 @@ def generate_wrapped_reports(period: Literal['monthly', 'yearly'] = 'yearly'):
                 'rank': 1,
                 'callout': '🌟 Server Overview',
                 'total_users': len(rankings)
-            }
+            },
+            'leaderboard': rankings
         }
         
         # Aggregate all history for server-wide stats

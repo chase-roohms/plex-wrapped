@@ -71,6 +71,9 @@ class WrappedHTMLGenerator:
         <!-- Ranking -->
         {'' if is_server_summary else self._generate_ranking_section(stats.get('ranking', {}))}
         
+        <!-- Leaderboard (Server Summary Only) -->
+        {self._generate_leaderboard_section(stats.get('leaderboard', [])) if is_server_summary else ''}
+        
         <!-- Most Watched -->
         {self._generate_most_watched_section(stats.get('top_watched', []), period_type)}
         
@@ -219,6 +222,59 @@ class WrappedHTMLGenerator:
                 <div class="ranking">#{ranking.get('rank', '?')}</div>
                 <div class="badge">{ranking.get('callout', 'Great Viewer')}</div>
                 <div class="subtitle">Out of {ranking.get('total_users', '?')} users</div>
+            </div>
+        </div>
+        """
+
+    def _generate_leaderboard_section(self, leaderboard: List[Dict[str, Any]]) -> str:
+        """Generate leaderboard section HTML for server summary"""
+        if not leaderboard:
+            return ""
+
+        max_hours = leaderboard[0].get('total_hours', 1) if leaderboard else 1
+
+        rows_html = ""
+        for entry in leaderboard:
+            rank = entry.get('rank', '?')
+            user = entry.get('user', 'Unknown')
+            total_hours = entry.get('total_hours', 0)
+            movie_hours = round(entry.get('movie_time', 0) / 3600, 1)
+            show_hours = round(entry.get('episode_time', 0) / 3600, 1)
+            callout = entry.get('callout', '')
+            bar_pct = round((total_hours / max_hours) * 100, 1) if max_hours > 0 else 0
+
+            if rank == 1:
+                rank_display = "👑"
+            elif rank == 2:
+                rank_display = "🥈"
+            elif rank == 3:
+                rank_display = "🥉"
+            else:
+                rank_display = f"#{rank}"
+
+            rows_html += f"""
+                <div class="leaderboard-row{' leaderboard-top' if rank <= 3 else ''}">
+                    <div class="leaderboard-rank">{rank_display}</div>
+                    <div class="leaderboard-info">
+                        <div class="leaderboard-user">{user}</div>
+                        <div class="leaderboard-bar-container">
+                            <div class="leaderboard-bar" style="width: {bar_pct}%"></div>
+                        </div>
+                        <div class="leaderboard-details">
+                            <span class="leaderboard-hours">{total_hours} hrs</span>
+                            <span class="leaderboard-breakdown">🎬 {movie_hours}h &nbsp; 📺 {show_hours}h</span>
+                        </div>
+                    </div>
+                </div>
+            """
+
+        return f"""
+        <div class="section">
+            <div class="stat-card">
+                <h3 style="text-align: center;">🏆 User Leaderboard</h3>
+                <div class="leaderboard">
+                    {rows_html}
+                </div>
             </div>
         </div>
         """
